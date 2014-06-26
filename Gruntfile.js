@@ -4,6 +4,8 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-browserify');
+    grunt.loadNpmTasks('grunt-contrib-uglify');
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
@@ -15,26 +17,10 @@ module.exports = function(grunt) {
                 files: [{
                     expand: true,
                     cwd: 'src',
-                    src: ['*.html', '**/*.png', '**/*.jpg'],
+                    src: ['*.html', '**/*.png', '**/*.jpg', '**/*.svg', '**/*.json'],
                     dest: 'web'
                 }]
             }
-        },
-
-        concat: {
-            app: {
-                src: [
-                    'src/js/**/*.js',
-                    'src/js/app.js',
-
-                    '!src/vendor/**/*/js'
-                ],
-                dest: 'web/js/app.js',
-            },
-            vendor: {
-                src: ['src/vendor/**/*.js'],
-                dest: 'web/js/vendor.js',
-            },
         },
 
         less: {
@@ -57,9 +43,49 @@ module.exports = function(grunt) {
             }
         },
 
+        browserify: {
+            dev: {
+                options: {
+                    ignore: ['src/js/vendor/**/*.js'],
+                    bundleOptions: {
+                        debug: true
+                    }
+                },
+                files: {
+                    'web/js/app.js': ['src/js/app.js']
+                }
+            },
+            production: {
+                options: {
+                },
+                files: {
+                    'web/js/app.js': ['src/js/app.js']
+                }
+            },
+        },
+
+        uglify: {
+            dev: {
+                options: {
+                    sourceMap: true,
+                    mangle: false
+                },
+                files: {
+                    'web/js/vendor.js': ['src/js/vendor/**/*.js', '!src/js/vendor/**/*.min.js']
+                }
+            },
+
+            production: {
+                files: {
+                    'web/js/vendor.js': ['src/js/vendor/**/*.js', '!src/js/vendor/**/*.min.js'],
+                    'web/js/app.js': ['web/js/app.js']
+                }
+            }
+        },
+
         watch: {
             html: {
-                files: ['src/**/*.js', 'src/**/*.html'],
+                files: ['src/**/*.html', 'src/**/*.jpg', 'src/**/*.png'],
                 tasks: ['copy'],
                 options: {
                     interrupt: true,
@@ -68,7 +94,7 @@ module.exports = function(grunt) {
 
             scripts: {
                 files: ['src/**/*.js'],
-                tasks: ['concat'],
+                tasks: ['browserify:dev'],
                 options: {
                     interrupt: true,
                 },
@@ -86,6 +112,6 @@ module.exports = function(grunt) {
         },
     });
 
-    grunt.registerTask('default', ['clean', 'less:dev', 'concat', 'copy', 'watch']);
+    grunt.registerTask('default', ['clean', 'less:dev', 'browserify:dev', 'uglify:dev', 'copy', 'watch']);
+    grunt.registerTask('production', ['clean', 'less:production', 'browserify:production', 'uglify:production', 'copy']);
 };
-
