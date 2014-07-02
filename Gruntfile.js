@@ -6,6 +6,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-http-server');
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
@@ -110,8 +111,19 @@ module.exports = function(grunt) {
                 tasks: ['copy']
             }
         },
+
+
+        'http-server': {
+            dev: {
+                root: 'web/',
+                cache: 0,
+                port: 8081,
+                runInBackground: true
+            }
+        }
     });
 
-    grunt.registerTask('default', ['clean', 'less:dev', 'browserify:dev', 'uglify:dev', 'copy', 'watch']);
+    grunt.registerTask('dev', ['clean', 'less:dev', 'browserify:dev', 'uglify:dev', 'copy', 'http-server', 'watch']);
     grunt.registerTask('production', ['clean', 'less:production', 'browserify:production', 'uglify:production', 'copy']);
+    grunt.registerTask('default', ['dev']);
 };
